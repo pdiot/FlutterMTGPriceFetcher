@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'cardList.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -48,6 +47,7 @@ class _CardDisplayState extends State<CardDisplay> {
   final _extensionCodeController = TextEditingController();
   final _picturesToDisplay = <String>{};
   CardModel? _currentCard;
+  final _savedCards = <CardModel>{};
 
   @override
   void dispose() {
@@ -153,11 +153,40 @@ class _CardDisplayState extends State<CardDisplay> {
   }
 
   void saveCard() {
+    if (!_savedCards.contains(_currentCard)) {
+      _savedCards.add(_currentCard as CardModel);
+    }
+  }
+
+  void cleanList() {
+    _savedCards.clear();
+    Navigator.of(context).pop();
   }
 
   void pushList() {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) {
-      return Scaffold(appBar: AppBar(title: const Text('Saved Cards')), body: const CardList());
+      final cards = _savedCards.map((savedCard) {
+        return Card(
+          child: Row(
+            children: [
+              Expanded(child: Text(savedCard.name), flex: 3,),
+              Expanded(child: Text(savedCard.editionCode), flex: 1,),
+              Expanded(child: Text(savedCard.collectorNumber.toString()), flex: 1,),
+              Expanded(child: Text(savedCard.eurPrice.toString()), flex: 1,),
+              Expanded(child: Text(savedCard.eurFoilPrice.toString()), flex: 1,),
+            ]
+          ),
+        );
+      });
+      final widgetList = cards.isNotEmpty ? cards.toList() : <Widget>[];
+      return Scaffold(
+        appBar: AppBar(title: const Text('Cards to sell'),
+         actions: [
+           IconButton(onPressed: cleanList, icon: const Icon(Icons.delete), tooltip: 'Clean list and go back',)
+         ],
+        ),
+        body: ListView(children: widgetList),
+      );
     }));
   }
 }
