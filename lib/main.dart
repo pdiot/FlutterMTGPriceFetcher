@@ -175,25 +175,27 @@ class _CardDisplayState extends State<CardDisplay> {
     final nameQuery = _freeSearchController.text.toString();
     _freeSearchController.clear();
     FocusScope.of(context).unfocus();
-    final uri = 'https://api.scryfall.com/cards/search?q=$nameQuery&unique=prints';
+    final uri = 'https://api.scryfall.com/cards/search?q=$nameQuery&unique=prints&include_multilingual=true';
     final encodedUri = Uri.encodeFull(uri);
     var response = await http.get(Uri.parse(encodedUri));
     var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
     setState(() {
       _cardsFromSearch.clear();
       var resultList = decodedResponse['data'];
-      for (var cardJson in resultList) {
-        var pictures = getPicturesFromJson(cardJson);
+      if (resultList != null) {
+        for (var cardJson in resultList) {
+          var pictures = getPicturesFromJson(cardJson);
 
-        var cardModel = CardModel(
-          cardJson['name'], 
-          cardJson['prices']['eur'] == null ? "" : cardJson['prices']['eur'],
-          cardJson['prices']['eur_foil'] == null ? "" : cardJson['prices']['eur_foil'],
-          cardJson['set'],
-          cardJson['collector_number'],
-          pictures
-        );
-        _cardsFromSearch.add(cardModel);
+          var cardModel = CardModel(
+            cardJson['name'], 
+            cardJson['prices']['eur'] == null ? "" : cardJson['prices']['eur'],
+            cardJson['prices']['eur_foil'] == null ? "" : cardJson['prices']['eur_foil'],
+            cardJson['set'],
+            cardJson['collector_number'],
+            pictures
+          );
+          _cardsFromSearch.add(cardModel);
+        }
       }
       if (_cardsFromSearch.isNotEmpty) {
         pushCardListFromSearch();
